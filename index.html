@@ -40,6 +40,13 @@
                 margin: 0 0 10px 0; border: none;
                 display: none;
             }
+            #input {
+                width: 100%; height: 240px;
+                resize: vertical;
+                border: none;
+                color: #ffffff;
+                background-color: #1e1e1e;
+            }
             #output {
                 width: 100%; height: 240px;
                 resize: vertical;
@@ -62,15 +69,20 @@
         <div id="page">
             <div id="content">
                 <p align="center">
+                    bar.py
+                    <br />
                     <textarea id="bar.py">print(22/7)</textarea>
                 </p>
                 <p align="center">
+                    foo.txt
+                    <br />
                     <textarea id="foo.txt">Hello from a textarea</textarea>
                 </p>
                 <p align="center">
                     Input
                     <br />
-                    <div id="input"></div>
+                    <!-- <div id="input"></div> -->
+                    <textarea id="input" rows="8"></textarea>
                 </p>
                 <p align="center">
                     Output
@@ -89,7 +101,7 @@
         </div>
         <script type="text/javascript" src="skulpt.min.js"></script>
         <script type="text/javascript" src="skulpt-stdlib.js"></script>
-        <script type="text/javascript" src="monaco/min/vs/loader.js"></script>
+        <!-- <script type="text/javascript" src="monaco/min/vs/loader.js"></script> -->
         <script type="text/javascript">
             // Prepares the environment.
             var input = document.getElementById('input');
@@ -187,26 +199,7 @@
             };
 
             // Loads the code editor.
-            var editor = null;
-            require.config({ paths: { vs: 'monaco/min/vs' } });
-            require(
-                ['vs/editor/editor.main'],
-                function () {
-                    editor = monaco.editor.create(
-                        input,
-                        {
-                            language: 'python',
-                            lineNumbers: 'on',
-                            roundedSelection: true,
-                            scrollBeyondLastLine: false,
-                            readOnly: false,
-                            theme: 'vs-dark',
-                            minimap: { enabled: true },
-                            automaticLayout: true
-                        }
-                    );
-
-                    var code =
+            var code =
                         'import bar\n' +
                         '\n' +
                         'f = open("foo.txt", "w")\n' +
@@ -217,17 +210,39 @@
                         'c = f.read()\n' +
                         'f.close()\n' +
                         'print(c)\n';
-                    editor.setValue(code);
-                }
-            );
+
+            // var editor = null;
+            // require.config({ paths: { vs: 'monaco/min/vs' } });
+            // require(
+            //     ['vs/editor/editor.main'],
+            //     function () {
+            //         editor = monaco.editor.create(
+            //             input,
+            //             {
+            //                 language: 'python',
+            //                 lineNumbers: 'on',
+            //                 roundedSelection: true,
+            //                 scrollBeyondLastLine: false,
+            //                 readOnly: false,
+            //                 theme: 'vs-dark',
+            //                 minimap: { enabled: true },
+            //                 automaticLayout: true
+            //             }
+            //         );
+
+            //         editor.setValue(code);
+            //     }
+            // );
+
+            input.value = code;
 
             // The evaluation and clearing procedure.
             function doEval () {
-                if (!editor) {
-                    output.innerHTML += 'Not ready yet\n';
+                // if (!editor) {
+                //     output.innerHTML += 'Not ready yet\n';
 
-                    return;
-                }
+                //     return;
+                // }
 
                 Sk.misceval.asyncToPromise(
                     function () {
@@ -236,7 +251,8 @@
                         return Sk.importMainWithBody(
                             "<stdin>",
                             false,
-                            editor.getValue(),
+                            //editor.getValue(),
+                            input.value,
                             true
                         );
                     }
