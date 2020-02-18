@@ -62,6 +62,12 @@
         <div id="page">
             <div id="content">
                 <p align="center">
+                    <textarea id="bar.py">print(22/7)</textarea>
+                </p>
+                <p align="center">
+                    <textarea id="foo.txt">Hello from a textarea</textarea>
+                </p>
+                <p align="center">
                     Input
                     <br />
                     <div id="input"></div>
@@ -97,12 +103,30 @@
                         output.scrollTop = output.scrollHeight;
                     },
                     read: function (x) {
+                        if (x === '/bar.py') {
+                            console.log('read', x);
+                            var c = document.getElementById('bar.py').value;
+
+                            return c;
+                        }
                         if (Sk.builtinFiles === undefined || Sk.builtinFiles['files'][x] === undefined)
-                                throw 'File not found: "' + x + '"';
+                            throw 'File not found: "' + x + '"';
 
                         return Sk.builtinFiles['files'][x];
                     },
                     debugout: console.log
+                }
+            );
+            var old = Sk.builtin.file.prototype.write;
+            Sk.builtin.file.prototype.write = new Sk.builtin.func(
+                function (self, x) {
+                    if (self.name == 'foo.txt') {
+                        console.log('write', x);
+
+                        document.getElementById('foo.txt').value = x.v;
+                    } else {
+                        return old.func_code.apply(this, arguments);
+                    }
                 }
             );
             Sk.TurtleGraphics = {
@@ -182,60 +206,17 @@
                         }
                     );
 
-                    var codeFib =
-                        'print("Fibonacci sequence")\n' +
-                        'def fib(n):\n' +
-                        '    if n <= 1:\n' +
-                        '        return n\n' +
-                        '    else:\n' +
-                        '        return fib(n - 1) + fib(n - 2)\n' +
-                        'n = 10\n' +
-                        'for i in range(n):\n' +
-                        '    print(fib(i))\n';
-                    var codeTurtle =
-                        'print("Turtle graphics")\n' +
-                        'print("See the canvas above")\n' +
-                        'import turtle\n' +
-                        'wn = turtle.Screen()\n' +
-                        'wn.bgcolor("lightgreen")\n' +
-                        'tess = turtle.Turtle()\n' +
-                        'tess.color("hotpink")\n' +
-                        'tess.pensize(5)\n' +
-                        'alex = turtle.Turtle()\n' +
-                        'tess.forward(80)\n' +
-                        'tess.left(120)\n' +
-                        'tess.forward(80)\n' +
-                        'tess.left(120)\n' +
-                        'tess.forward(80)\n' +
-                        'tess.left(120)\n' +
-                        'tess.right(180)\n' +
-                        'tess.forward(80)\n' +
-                        'alex.forward(50)\n' +
-                        'alex.left(90)\n' +
-                        'alex.forward(50)\n' +
-                        'alex.left(90)\n' +
-                        'alex.forward(50)\n' +
-                        'alex.left(90)\n' +
-                        'alex.forward(50)\n' +
-                        'alex.left(90)\n' +
-                        'wn.exitonclick()\n';
-                    var codeCustom =
-                        'print("Custom values")\n' +
-                        'co = CustomObject()\n' +
-                        'co.memberFunction()\n' +
-                        'customFunction(22, 7)\n' +
-                        'customInstance.customFunction()\n' +
+                    var code =
+                        'import bar\n' +
                         '\n' +
-                        'print("Custom module")\n' +
-                        'from CustomModule import *\n' +
-                        'moduleFunction(22, 7)\n' +
-                        'obj = ModuleObject(1, 2)\n' +
-                        'obj.a = 22\n' +
-                        'obj.b = 7\n' +
-                        'tmp = obj.__add__(ModuleObject(355, 113))\n' +
-                        'print(obj.a / obj.b)\n' +
-                        'print(len(obj), str(obj))\n';
-                    var code = [ codeFib, codeTurtle ].join('\n');
+                        'f = open("foo.txt", "w")\n' +
+                        'f.write("Woops!")\n' +
+                        'f.close()\n' +
+                        '\n' +
+                        'f = open("foo.txt")\n' +
+                        'c = f.read()\n' +
+                        'f.close()\n' +
+                        'print(c)\n';
                     editor.setValue(code);
                 }
             );
@@ -252,7 +233,12 @@
                     function () {
                         doRelayout(true);
 
-                        return Sk.importMainWithBody("<stdin>", true, editor.getValue(), true);
+                        return Sk.importMainWithBody(
+                            "<stdin>",
+                            false,
+                            editor.getValue(),
+                            true
+                        );
                     }
                 ).then(
                     function (mod) {
